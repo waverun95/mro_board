@@ -1,0 +1,58 @@
+ /* 리셀 */
+ * {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 전체 레이아웃 */
+
+  #header {
+    height: 140px;
+  }
+
+  #contents {
+    height: 750px;
+  }
+
+  #footer {
+    height: 10px;
+  }
+
+  #footer-nav {
+    height: 10px;
+  }
+
+  #footer-info {
+    height: 10px;
+  }
+
+  /* 레이아웃 */
+  #header-top {
+    height: 70px;
+  }
+
+  #header-nav {
+    height: 70px;
+  }
+
+  #content1 {
+    height: 750px;
+    margin-top: 20px;
+  }
+
+  /*  컨테이너 */
+  .container {
+    width: 1100px;
+    margin: 0 auto;
+    height: inherit;
+  }
+
+  h1 {
+    font-size: 50px;
+  }
+
+  
+
+
+
+ 

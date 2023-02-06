@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AJAX를 사용하여 파일 업로드 하기</title>
+</head>
+<body>
+<script src="https://code.jquery.com/jquery-3.6.3.js" integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
+crossorigin="anonymous">
+</script>
+
+<script>
+    function file_frm_submit(frm) {
+
+        var fileCheck = frm.upload_file.value;
+
+        if(!fileCheck) {
+            alert("업로드할 파일을 선택하세요.");
+            return false;
+        }
+
+        var formData = new FormData(frm);            // 파일전송을 위한 폼데이터 객체 생성
+
+        formData.append("message", "ajax로 파일 전송하기");
+        formData.append("file", jQuery("#upload_file")[0].files[0]);
+
+        $.ajax({
+            url            : 'ajax_file_upload_test.php',
+            type        : 'POST',
+            dataType    : 'html',
+            enctype        : 'multipart/form-data',
+            processData    : false,
+            contentType    : false,
+            data        : formData,
+            async        : false,
+            success        : function(response) {
+                console.log(response);
+
+            }
+        });
+    }
+
+</script>
+
+<form id="file_frm">
+    <input type="file" name="upload_file" id="upload_file">
+    <br><br>
+    <button type="button" name="upload_btn" onClick="file_frm_submit(this.form)">ajax 업로드</button>
+</form>
+
+</body>
+</html>
