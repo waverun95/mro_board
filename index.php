@@ -26,32 +26,30 @@ if ($serch_title == "" && $serch_writer == "" && $serch_fdate == "" && $serch_ld
 }
 
 
-//@param $page 현재 페이지 
-//$page = isset($_REQUEST["page"]) ? $_REQUEST["page"] : 1;
-
-$total = $db->executeResult($total_query);
+//$total = $db->executeResult($total_query);
+$total = mysqli_fetch_array(mysqli_query($conn, $total_query));
 
 settype($total['total'], 'integer');
 
-var_dump($total['total']);
+
 
 require_once ("common/paging.php");
 
 
-//@param $list_num 한 페이지 당 데이터 개수
+// $list_num 한 페이지 당 데이터 개수
 $list_num = 10;
 
 
-//@param $page_num 한 블럭 당 페이지 수
+// $page_num 한 블럭 당 페이지 수
 $page_num = 3;
 
 $paging = new paging($page, $list_num, $page_num, $total['total']);
 
-//@param $list_query 쿼리 작성 - limit 몇번부터, 몇개 */
+// $list_query 쿼리 작성 - limit 몇번부터, 몇개 */
 $list_query .= "order by IDX desc limit $paging->start, $paging->list_num";
 
-$result = $db->executeQuery($list_query);
-
+//$result = $db->executeQuery($list_query);
+$result = mysqli_query($conn, $list_query);
 
 ?>
 <!DOCTYPE html>
@@ -65,7 +63,7 @@ $result = $db->executeQuery($list_query);
     <link rel="stylesheet" href="css/index.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="//code.jquery.com/jquery.min.js"></script>
-    <title>Document</title>
+    <title>목록</title>
 </head>
 
 <body>
@@ -123,8 +121,7 @@ $result = $db->executeQuery($list_query);
                         ?>
                             <td colspan="7" style="text-align: center;">검색된 결과가 없습니다</td>
 
-                        <?php
-                            var_dump($serch_paging);
+                        <?php                          
                         }
                         while ($row = mysqli_fetch_array($result)) {
                         ?>
@@ -207,7 +204,6 @@ $result = $db->executeQuery($list_query);
                         alert("날짜를 올바르게 입력해주세요");
                         return false;
                     }
-
                 }
 
                 if ($('#serch_title').val() == "" && $('#serch_writer').val() == "" && $('#fdate').val() == "" && $('#ldate').val() == ""){

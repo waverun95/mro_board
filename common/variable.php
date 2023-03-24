@@ -21,8 +21,9 @@ $file_path = "";
 if($idx !=""){
     $board_title = "수정";
     $form_action = "update_process.php";
-    $query = "select * from mro_board where IDX = {$idx}";
-    $row = $db->executeResult($query);
+    $query = "select * from mro_board where IDX = {$idx}";    
+    //$row = $db->executeResult($query);
+    $row =  mysqli_fetch_array(mysqli_query($conn, $query));
     $post_type = $row['POST_TYPE'];
     $writer = $row['WRITER'];
     $category = $row['CATEGORY'];
@@ -35,7 +36,8 @@ if($idx !=""){
     if($file_check == 'Y'){
         $delete_btn = '<button type = "button" id="delete_btn">지우기</button>';
         $file_query = "select * from mro_attach where IDX = {$idx}";
-        $file_row = $db->executeResult($file_query);
+        //$file_row = $db->executeResult($file_query);
+        $file_row = mysqli_fetch_array(mysqli_query($conn, $file_query));
         $file_name = $file_row['FILE_NAME'];
         $file_id = $file_row['FILE_ID'];
         $local_filepath = "http://localhost/mro_board/upload/{$file_id}-" . $file_name;

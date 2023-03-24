@@ -1,58 +1,10 @@
 <?php
 require_once("common/variable.php");
 require_once("common/function.php");
-//$db = new dbClass();
-echo $_SERVER['REQUEST_URI'];
-echo 'zzz';
-echo $_SERVER['PHP_SELF'];
-//$query = "select * from mro_board where IDX = {$_GET['IDX']}";
+
 $hit_query = "update mro_board set HIT = HIT +1 where IDX = {$_GET['IDX']}";
-$db -> executeQuery($hit_query);
-
-//$hit_result = mysqli_query($conn, $hit_query);
-//$URL = $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
-
-//$page = $_GET['page'];
-
-//$result = mysqli_query($conn, $query);
-//$row = $db -> executeResult($query);
-//$row = mysqli_fetch_array($result);
-//집에서 다시 테스트 result값이 안들어감
-
-
-//$idx = $row['IDX'];
-//$post_type = $row['POST_TYPE'];
-//$writer = $row['WRITER'];
-//$category = $row['CATEGORY'];
-//$customer_type = $row['CUSTOMER_TYPE'];
-//$title = $row['TITLE'];
-//$content = $row['CONTENT'];
-//$file_check = $row['FILE_CHECK'];
-//
-//$serch_title = isset($_GET['serch_title']) ? $_GET['serch_title'] : "";
-//$serch_writer = isset($_GET['serch_writer']) ? $_GET['serch_writer'] : "";
-//$serch_fdate = isset($_GET['serch_fdate']) ? $_GET['serch_fdate'] : "";
-//$serch_ldate = isset($_GET['serch_ldate']) ? $_GET['serch_ldate'] : "";
-
-//echo 'file_check <br>'.$file_check; 
-
-//$file_name = "";
-//$file_path = "";
-//$file_id = "";
-//if ($file_check == 'Y') {
-//  //$file_query = "select * from mro_board,mro_attach where mro_board.IDX = mro_attach.IDX AND mro_board.IDX = {$idx};";
-//  $file_query = "select * from mro_attach where IDX = {$idx}";
-//  //$file_result = mysqli_query($conn, $file_query);
-//  //$file_row = mysqli_fetch_array($file_result);
-//
-//  $file_row = $db ->executeResult($file_query);
-//  $file_id = $file_row['FILE_ID'];
-//  $file_name = $file_row['FILE_NAME'];
-//  echo $file_name.'>>>>>>>>>>';
-//  $local_filepath = "http://localhost/mro_board/upload/{$file_id}-" . $file_name;
-//  //$file_path = $file_row['FILE_PATH']; 절대 경로는 403에러가 나서 톰캣 설정
-//
-//}
+//$db -> executeQuery($hit_query);
+mysqli_query($conn, $hit_query);
 
 ?>
 <!DOCTYPE html>
@@ -175,7 +127,7 @@ $db -> executeQuery($hit_query);
       form.append("<input type='hidden' name=serch_fdate value=" + serch_fdate + ">");
       form.append("<input type='hidden' name=serch_ldate value=" + serch_ldate + ">");
       form.submit();
-    })
+    });
 
     $(document).on('click', '#delete', function(e) {
       if (confirm("삭제하실건가여?")) {
@@ -185,7 +137,7 @@ $db -> executeQuery($hit_query);
         form.append("<input type='hidden' name=pre_file_id value="+ file_id+">");
         form.submit();
       }
-    })
+    });
 
     $(document).on('click', '#list', function(e) {
       $('#readform').attr('action', 'index.php');
@@ -193,7 +145,7 @@ $db -> executeQuery($hit_query);
       form.append("<input type='hidden' name=page value=" + page + ">");
       form.submit();
     })
-  })
+  });
 </script>
 
 </html>

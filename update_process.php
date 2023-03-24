@@ -2,173 +2,155 @@
 require_once("common/common_variable.php");
 require_once("common/function.php");
 
-if ($serch_title !="" || $serch_writer != "" || $serch_fdate != "" || $serch_ldate != ""){
-  $URL = "/mro_board/index.php?page=$page&serch_title=$serch_title&serch_writer=$serch_writer&serch_fdate=$serch_fdate&serch_ldate=$serch_ldate"; 
-  echo $URL;
-}else {
-  $URL = "/mro_board/index.php?page=$page";
-  echo $URL;
-}
+$attach_result = false;
+$write_result = false;
+$update_result = false;
+$delete_result = false; 
+$write_result_one = false;
 
+if ($serch_title != "" || $serch_writer != "" || $serch_fdate != "" || $serch_ldate != "") {
+  $URL = "/mro_board/index.php?page=$page&serch_title=$serch_title&serch_writer=$serch_writer&serch_fdate=$serch_fdate&serch_ldate=$serch_ldate";
+} else {
+  $URL = "/mro_board/index.php?page=$page";
+}
 
 $serch_paging = "localhost/mro_board/index.php?serch_title={$_POST['serch_title']}serch_writer=&serch_fdate=&serch_ldate=";
-echo $serch_paging;
 
-var_dump($_POST['pre_file_id'].$_POST['pre_file_name']);
-// $post_type = $_POST['POST_TYPE'];
-// $writer = $_POST['WRITER'];
-// $category = $_POST['CATEGORY'];
-// $title = $_POST['TITLE'];
-// $content = $_POST['CONTENT'];
-// $filepath = $_POST['FILEPATH'];
+
 $customer_type = $_POST['CUSTOMER_TYPE'];
-$customer_type2 = implode(",",$customer_type);
-// $URL = './index.php';
+$customer_type2 = implode(",", $customer_type);
 
-require_once("common/validation.php");
 
-//function gen_uuid() {//파일이름 중복방지를 위해 생성
-//  return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-//     mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-//     mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000,
-//     mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-//   );
-//}
+require("common/validation1.php");
 
-if(isset($_POST['IDX'])){
- $idx = mysqli_real_escape_string($conn, $_POST['IDX']); 
+
+// 트랜잭션 시작......................
+mysqli_query($conn, "SET AUTOCOMMIT=0");
+mysqli_query($conn, "START TRANSACTION");
+
+
+if (isset($_POST['IDX'])) { // 필터 적용한 내용들
+  $idx = mysqli_real_escape_string($conn, $_POST['IDX']);
 }
 $filtered = array(
-  'POST_TYPE'=>mysqli_real_escape_string($conn,$_POST['POST_TYPE']),
-  'WRITER'=>mysqli_real_escape_string($conn,$_POST['WRITER']),
-  'CATEGORY'=>mysqli_real_escape_string($conn,$_POST['CATEGORY']),
-  'CUSTOMER_TYPE'=>mysqli_real_escape_string($conn,$customer_type2),
-  'TITLE'=>mysqli_real_escape_string($conn,$_POST['TITLE']),
-  'CONTENT'=>mysqli_real_escape_string($conn,$_POST['CONTENT']),
-  'FILE_CHECK'=>mysqli_real_escape_string($conn,$_POST['FILE_CHECK'])
+  'POST_TYPE' => mysqli_real_escape_string($conn, $_POST['POST_TYPE']),
+  'WRITER' => htmlspecialchars(mysqli_real_escape_string($conn, $_POST['WRITER'])),
+  'CATEGORY' => mysqli_real_escape_string($conn, $_POST['CATEGORY']),
+  'CUSTOMER_TYPE' => mysqli_real_escape_string($conn, $customer_type2),
+  'TITLE' => htmlspecialchars(mysqli_real_escape_string($conn, $_POST['TITLE'])),
+  'CONTENT' => htmlspecialchars(mysqli_real_escape_string($conn, $_POST['CONTENT'])),
+  'FILE_CHECK' => mysqli_real_escape_string($conn, $_POST['FILE_CHECK'])
 
 );
+$write_query = "update mro_board
+                set 
+                POST_TYPE = '{$filtered['POST_TYPE']}',
+                WRITER = '{$filtered['WRITER']}',
+                CATEGORY = '{$filtered['CATEGORY']}',
+                CUSTOMER_TYPE = '{$filtered['CUSTOMER_TYPE']}',
+                TITLE = '{$filtered['TITLE']}',
+                CONTENT = '{$filtered['CONTENT']}',
+                FILE_CHECK = '{$filtered['FILE_CHECK']}'
+                where IDX = {$idx}";
 
-$query = "update mro_board
-set 
-POST_TYPE = '{$filtered['POST_TYPE']}',
-WRITER = '{$filtered['WRITER']}',
-CATEGORY = '{$filtered['CATEGORY']}',
-CUSTOMER_TYPE = '{$filtered['CUSTOMER_TYPE']}',
-TITLE = '{$filtered['TITLE']}',
-CONTENT = '{$filtered['CONTENT']}',
-FILE_CHECK = '{$filtered['FILE_CHECK']}'
-where IDX = {$idx}";
 
+if ($_FILES['file']['size'] > 0) { //파일이 새로 들어온경우
 
-//echo($query);
-
-$result = $conn->query($query);
-
-//echo($result);
-//echo "%%%%%%%%";
-//var_dump($_FILES);
-//echo "%%%%%%%%";
-
-if($_FILES['file']['size'] > 0) {
- 
-  $file_id = gen_uuid(); 
-
+  $file_id = gen_uuid();
   $tmpfile =  $_FILES['file']['tmp_name'];
   $file_name = $_FILES['file']['name'];
-  //$filename = iconv("UTF-8", "EUC-KR",$_FILES['file']['name']);//한글 깨짐 방지
-  //echo "ddd";
-  //print_r($filename);
-  
-  $save_filename = $_SERVER['DOCUMENT_ROOT'] . "/mro_board/upload/{$file_id}-".$file_name;
-  
-  
-  $filtered_attach = array(
-    'FILE_ID'=>mysqli_real_escape_string($conn,$file_id),
-    'IDX'=>mysqli_real_escape_string($conn,$idx),
-    'FILE_NAME'=>mysqli_real_escape_string($conn,$file_name),
-    'FILE_PATH'=>mysqli_real_escape_string($conn,$save_filename),
-    'FILE_TYPE'=>mysqli_real_escape_string($conn,$_FILES['file']['type']),
-    'FILE_SIZE'=>mysqli_real_escape_string($conn,$_FILES['file']['size'])
+  $save_filename = $_SERVER['DOCUMENT_ROOT'] . "/mro_board/upload/{$file_id}-" . $file_name;
+
+  $filtered_attach = array( // 필터 적용한 첨부파일 내용들
+    'FILE_ID' => mysqli_real_escape_string($conn, $file_id),
+    'IDX' => mysqli_real_escape_string($conn, $idx),
+    'FILE_NAME' => mysqli_real_escape_string($conn, $file_name),
+    'FILE_PATH' => mysqli_real_escape_string($conn, $save_filename),
+    'FILE_TYPE' => mysqli_real_escape_string($conn, $_FILES['file']['type']),
+    'FILE_SIZE' => mysqli_real_escape_string($conn, $_FILES['file']['size'])
   );
 
-  if($_POST['pre_file_name'] != "") {// 이전 파일이 있고 파일을 새로 등록할경우 update
- 
-  $attach_query = "update mro_attach
-  set
-  FILE_ID = '{$filtered_attach['FILE_ID']}',
-  IDX = '{$filtered_attach['IDX']}',
-  FILE_NAME = '{$filtered_attach['FILE_NAME']}',
-  FILE_PATH = '{$filtered_attach['FILE_PATH']}',
-  FILE_TYPE = '{$filtered_attach['FILE_TYPE']}',
-  FILE_SIZE = '{$filtered_attach['FILE_SIZE']}'
-  where IDX = {$idx}";
+  if ($_POST['pre_file_name'] != "") { // 이전 파일이 있고 파일을 새로 등록할경우 update   
+    $attach_query = "update mro_attach
+                      set
+                          FILE_ID = '{$filtered_attach['FILE_ID']}',
+                          IDX = '{$filtered_attach['IDX']}',
+                          FILE_NAME = '{$filtered_attach['FILE_NAME']}',
+                          FILE_PATH = '{$filtered_attach['FILE_PATH']}',
+                          FILE_TYPE = '{$filtered_attach['FILE_TYPE']}',
+                          FILE_SIZE = '{$filtered_attach['FILE_SIZE']}'
+                      where IDX = {$idx}";
+    $attach_result = mysqli_query($conn, $attach_query);
+    $write_result = mysqli_query($conn, $write_query);
+
+  } else if ($_POST['pre_file_name'] == "") { //이전 파일이 없고 파일이 새로 들어온 경우는 create
+      $attach_query = "insert into mro_attach(FILE_ID,IDX,FILE_NAME,FILE_PATH,FILE_TYPE,FILE_SIZE)
+                        values('{$filtered_attach['FILE_ID']}',
+                        '{$filtered_attach['IDX']}',
+                        '{$filtered_attach['FILE_NAME']}',
+                        '{$filtered_attach['FILE_PATH']}',
+                        '{$filtered_attach['FILE_TYPE']}',
+                        '{$filtered_attach['FILE_SIZE']}')";
+
+      $attach_result = mysqli_query($conn, $attach_query);
+      $write_result = mysqli_query($conn, $write_query);
   
-  move_uploaded_file($tmpfile,$save_filename);
-
-  unlink("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
-  //print_r($attach_query);
-
-  $attach_result = $conn->query($attach_query);
   }
-  else if($_POST['pre_file_name'] == "") { //이전 파일이 없고 파일이 새로 들어온 경우는 create
-    $attach_query = "insert into mro_attach(FILE_ID,IDX,FILE_NAME,FILE_PATH,FILE_TYPE,FILE_SIZE)
-  values('{$filtered_attach['FILE_ID']}',
-  '{$filtered_attach['IDX']}',
-  '{$filtered_attach['FILE_NAME']}',
-  '{$filtered_attach['FILE_PATH']}',
-  '{$filtered_attach['FILE_TYPE']}',
-  '{$filtered_attach['FILE_SIZE']}')";
+  //결과 처리.....
+    if ($attach_result && $write_result) { 
+      mysqli_query($conn, "COMMIT");
+      mysqli_query($conn, "SET AUTOCOMMIT=1");
+      move_uploaded_file($tmpfile, $save_filename);
 
-  move_uploaded_file($tmpfile,$save_filename);
+      if(file_exists("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}")){
+        unlink("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
+      }
+  } else {
+      mysqli_query($conn, "ROLLBACK");
+      }
+  
+} else {// 파일이 안들어왔을경우.....
 
-  //print_r($attach_query);
+  if ($_POST['FILE_CHECK'] == 'N' && $_POST['pre_file_name'] != "") { // 이전 파일이름이 있고 파일체크가 N으로 바뀐경우...
+    //db 파일먼저 삭제
+    $delete_query = "delete from mro_attach where IDX = {$idx}";
 
-  $attach_result = $conn->query($attach_query);
+    $update_query = "update mro_board set FILE_CHECK = 'N' where IDX = {$idx}";
+
+
+    $write_result = mysqli_query($conn, $write_query);
+    $delete_result = mysqli_query($conn, $delete_query);
+    $update_result = mysqli_query($conn, $update_query);
+
+    
+  } else if ($_POST['FILE_CHECK'] == 'N' && $_POST['pre_file_name'] == "" || $_POST['FILE_CHECK'] == 'Y') { // 글만 수정한 경우....
+    $write_result_one = mysqli_query($conn, $write_query);
+
   }
+  //결과 처리...
+  if (($update_result && $write_result && $delete_result) || $write_result_one) {      
+      mysqli_query($conn, "COMMIT");
+      mysqli_query($conn, "SET AUTOCOMMIT=1");
 
-
-  if ($attach_result) {
-    ?>                  
-    <script>
-      alert("파일첨부 되었습니다.");
-      
-      </script>
-    <?php
-      
-  }
-  else{
-    echo "atta3chFAIL";
-  }
-} else {
-  if($_POST['FILE_CHECK'] == 'N' && $_POST['pre_file_name'] != "") {// 이전 파일이름과 파일체크가 N으로 바뀐경우
-          //db 파일먼저 삭제
-      $delete_query = "delete from mro_attach where IDX = {$idx}";
-
-      $delete_result = $conn->query($delete_query);
-
-      //print_r($delete_query);
-
-      $update_query = "update mro_board set FILE_CHECK = 'N' where IDX = {$idx}";
-      
-      $update_result = $conn->query($update_query);
-
-      unlink("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
-  }
+      if($update_result && $write_result && $delete_result) {
+        unlink("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
+      }
+    } else {
+          mysqli_query($conn, "ROLLBACK");
+        }
 }
 
-if ($result) {
-  ?>                  
-  <script>
-    alert("글이 수정되었습니다.");
-    location.href = "<?=$URL?>";
-    </script>
-  <?php
-  //$URL = $_SERVER['HTTP_HOST']."/mro_board/index.php";
-  //header("HTTP/1.1 307 Temporary move");
-  //header("Location: http://$URL");
+//file_exists("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
+
+
+if(($attach_result && $write_result) || ($update_result && $write_result && $delete_result) || $write_result_one) {
+  echo ' <script>
+              alert("글이 수정되었습니다.");
+              location.href = "' . $URL . '";
+              </script>';
+}else {
+  echo '<script>
+              alert("글이 수정되지 않았습니다.");
+              location.href = "/mro_board/index.php";
+              </script>';
 }
-else{
-  echo "upd3ateFAIL";
-}
-  ?>
