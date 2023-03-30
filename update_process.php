@@ -13,15 +13,12 @@ if ($serch_title != "" || $serch_writer != "" || $serch_fdate != "" || $serch_ld
 } else {
   $URL = "/mro_board/index.php?page=$page";
 }
-
 $serch_paging = "localhost/mro_board/index.php?serch_title={$_POST['serch_title']}serch_writer=&serch_fdate=&serch_ldate=";
-
 
 $customer_type = $_POST['CUSTOMER_TYPE'];
 $customer_type2 = implode(",", $customer_type);
 
-
-require("common/validation1.php");
+require("common/validation.php");
 
 
 // 트랜잭션 시작......................
@@ -52,7 +49,6 @@ $write_query = "update mro_board
                 CONTENT = '{$filtered['CONTENT']}',
                 FILE_CHECK = '{$filtered['FILE_CHECK']}'
                 where IDX = {$idx}";
-
 
 if ($_FILES['file']['size'] > 0) { //파일이 새로 들어온경우
 
@@ -93,8 +89,7 @@ if ($_FILES['file']['size'] > 0) { //파일이 새로 들어온경우
                         '{$filtered_attach['FILE_SIZE']}')";
 
       $attach_result = mysqli_query($conn, $attach_query);
-      $write_result = mysqli_query($conn, $write_query);
-  
+      $write_result = mysqli_query($conn, $write_query);  
   }
   //결과 처리.....
     if ($attach_result && $write_result) { 
@@ -117,12 +112,10 @@ if ($_FILES['file']['size'] > 0) { //파일이 새로 들어온경우
 
     $update_query = "update mro_board set FILE_CHECK = 'N' where IDX = {$idx}";
 
-
     $write_result = mysqli_query($conn, $write_query);
     $delete_result = mysqli_query($conn, $delete_query);
     $update_result = mysqli_query($conn, $update_query);
 
-    
   } else if ($_POST['FILE_CHECK'] == 'N' && $_POST['pre_file_name'] == "" || $_POST['FILE_CHECK'] == 'Y') { // 글만 수정한 경우....
     $write_result_one = mysqli_query($conn, $write_query);
 
@@ -139,9 +132,6 @@ if ($_FILES['file']['size'] > 0) { //파일이 새로 들어온경우
           mysqli_query($conn, "ROLLBACK");
         }
 }
-
-//file_exists("{$_SERVER['DOCUMENT_ROOT']}/mro_board/upload/{$_POST['pre_file_id']}-{$_POST['pre_file_name']}");
-
 
 if(($attach_result && $write_result) || ($update_result && $write_result && $delete_result) || $write_result_one) {
   echo ' <script>

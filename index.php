@@ -2,53 +2,36 @@
 require_once("common/common_variable.php");
 require_once("common/function.php");
 
-$total_query_common = "select count(*) as total from mro_board";
+$list_query = "select * from mro_board WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%'".$date_query; //리스트 조회하는 쿼리
 
-if ($serch_fdate != "" && $serch_ldate != "") { // 날짜가 있는경우
+$total_query = "select count(*) as total from mro_board WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%'".$date_query; //검색조건에 맞는 토탈 값 쿼리
 
-    $list_query = "select * from mro_board  
-    WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%' AND DATE(REGDATE) 
-    BETWEEN '$serch_fdate' AND '$serch_ldate'";
+$serch_paging = "&serch_title=$serch_title&serch_writer=$serch_writer&serch_fdate=$serch_fdate&serch_ldate=$serch_ldate"; //페이징 유지
 
-    $total_query = $total_query_common . " WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%' AND DATE(REGDATE) 
-    BETWEEN '$serch_fdate' AND '$serch_ldate'";
 
-    $serch_paging = "&serch_title=$serch_title&serch_writer=$serch_writer&serch_fdate=$serch_fdate&serch_ldate=$serch_ldate";
-} else {
-    $list_query = "select * from mro_board  
-    WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%'";
-    $total_query = $total_query_common . " WHERE TITLE LIKE '%$serch_title%' AND WRITER LIKE '%$serch_writer%'";
-    $serch_paging = "&serch_title=$serch_title&serch_writer=$serch_writer";
-}
-
+//검색 쿼리 없을 경우
 if ($serch_title == "" && $serch_writer == "" && $serch_fdate == "" && $serch_ldate == "") {
     $serch_paging = "";
 }
 
 
-//$total = $db->executeResult($total_query);
 $total = mysqli_fetch_array(mysqli_query($conn, $total_query));
 
 settype($total['total'], 'integer');
 
-
-
 require_once ("common/paging.php");
-
 
 // $list_num 한 페이지 당 데이터 개수
 $list_num = 10;
-
 
 // $page_num 한 블럭 당 페이지 수
 $page_num = 3;
 
 $paging = new paging($page, $list_num, $page_num, $total['total']);
 
-// $list_query 쿼리 작성 - limit 몇번부터, 몇개 */
+// $list_query 쿼리 작성 - limit 몇번부터, 몇개 
 $list_query .= "order by IDX desc limit $paging->start, $paging->list_num";
 
-//$result = $db->executeQuery($list_query);
 $result = mysqli_query($conn, $list_query);
 
 ?>
@@ -68,7 +51,6 @@ $result = mysqli_query($conn, $list_query);
 
 <body>
 
-
     <div id="wrap">
         <!-- wrap -->
         <div id="header">
@@ -77,7 +59,7 @@ $result = mysqli_query($conn, $list_query);
             </div>
             <div id="header-nav">
                 <div class="container">
-                    <h1>목록</h1>
+                    <a href="/mro_board/index.php"><h1>목록</h1></a>
                     <hr>
                 </div>
             </div>
@@ -128,10 +110,10 @@ $result = mysqli_query($conn, $list_query);
                             <tr>
                                 <td class="list_td2"><?= $paging->total - (($paging->page - 1) * $paging->list_num) - $i ?></td>
                                 <td class="list_td2"><?= post_type_change($row['POST_TYPE']) ?></td>
-                                <td class="list_td2"><a href="read.php?IDX=<?= $row['IDX'] . '&page=' . $paging->page . $serch_paging ?>"><?= $row['TITLE'] ?></a></td>
+                                <td class="list_td2"><a href="read.php?IDX=<?= $row['IDX'] . '&page=' . $paging->page . $serch_paging ?>"><?= strlen($row['TITLE']) > 30 ? mb_substr($row['TITLE'], 0, 30) . "..." : $row['TITLE'] ?></a></td>
                                 <td class="list_td2"><?= file_check($row['FILE_CHECK']) ?></td>
                                 <td class="list_td2"><?= date_format(date_create($row['REGDATE']), 'Y-m-d'); ?></td>
-                                <td class="list_td2"><?= $row['WRITER'] ?></td>
+                                <td class="list_td2"><?= strlen($row['WRITER']) > 12 ? mb_substr($row['WRITER'], 0, 6) . "..." : $row['WRITER'] ?></td>
                                 <td class="list_td2"><?= $row['HIT'] ?></td>
 
                             </tr>
@@ -167,8 +149,14 @@ $result = mysqli_query($conn, $list_query);
 
     <script>
         $(document).on('ready', function(e) {
+
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = ("0" + (1 + date.getMonth())).slice(-2);
+            var day = ("0" + date.getDate()).slice(-2);
+            var today = year + "-" + month + "-" + day;
+
             var serch_form = $('#serch_form');
-            console.log(serch_form);
             $('#write_btn').on('click', function(e) {
                 location.href = "http://localhost/mro_board/write.php";
             });
@@ -176,26 +164,17 @@ $result = mysqli_query($conn, $list_query);
                 location.href = "http://localhost/mro_board/index.php";
             })
 
-
-            $('#fdate').on('change', function(e) {
-                console.log($('#fdate').val());
-            })
-
-            $('#ldate').on('change', function(e) {
-                console.log($('#ldate').val());
-            })
             $('#serch_btn').on('click', function(e) {
 
                 if ($('#fdate').val() != "") {
                     if ($('#ldate').val() == "") {
-                        alert("날짜를 다시 입력해주세요");
-                        return false;
+                        $('#ldate').val(today);
                     }
                 }
                 if ($('#ldate').val() != "") {
                     if ($('#fdate').val() == "") {
-                        alert("날짜를 다시 입력해주세요");
-                        return false;
+                        today = '1970-01-01';
+                        $('#fdate').val(today);
                     }
                 }
 

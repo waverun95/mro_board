@@ -3,7 +3,6 @@ require_once("common/variable.php");
 require_once("common/function.php");
 
 $hit_query = "update mro_board set HIT = HIT +1 where IDX = {$_GET['IDX']}";
-//$db -> executeQuery($hit_query);
 mysqli_query($conn, $hit_query);
 
 ?>
@@ -72,15 +71,19 @@ mysqli_query($conn, $hit_query);
             <tr>
               <td class="col"><label for="">내용</label></td>
               <td class="col2 content">
+                <?php echo $img_check ? '<img src="upload/'.$file_id.'-'.$file_name.'" style="width: 400px;"><br>' : "" ?>
                 <?= $content ?>
               </td>
             </tr>
+
+            <?php if($file_name !=''){?>
             <tr>
               <td class="col"><label for="">첨부파일</label> </td>
-              <!-- <td class="col2"><span><?= $file_name ?></span> <a id="download_btn" href="<?= $local_filepath ?>" download="<?= $file_name ?>">다운로드</a></td> -->
               <td class="col2"><span><?= $file_name ?></span> <?php echo $file_name !='' ? '<a id="download_btn" href="'.$local_filepath.'"download="'.$file_name.'">다운로드</a>':''?></td>
               <!-- 다운로드 파일이 있을경우만 다운로드 버튼 활성화 -->
             </tr>
+            <?php }?>
+
           </table>
           <div id="f_btn">
             <button type="button" id="update" class="fr_btn">수정</button>
@@ -143,6 +146,10 @@ mysqli_query($conn, $hit_query);
       $('#readform').attr('action', 'index.php');
       $('#readform').attr("method", "get");
       form.append("<input type='hidden' name=page value=" + page + ">");
+      form.append("<input type='hidden' name=serch_title value=" + serch_title + ">");
+      form.append("<input type='hidden' name=serch_writer value=" + serch_writer + ">");
+      form.append("<input type='hidden' name=serch_fdate value=" + serch_fdate + ">");
+      form.append("<input type='hidden' name=serch_ldate value=" + serch_ldate + ">");
       form.submit();
     })
   });

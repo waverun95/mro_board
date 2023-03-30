@@ -12,17 +12,16 @@ $file_check = "N"; //파일 유무
 $delete_btn = "";
 $file_name = ""; //파일 이름
 $file_id = ""; //중복방지 파일아이디
-//write
 $form_action = "write_process.php";
 $board_title = "등록";
 $file_path = "";
+$img_check = false; // 이미지 체크
 
 
 if($idx !=""){
     $board_title = "수정";
     $form_action = "update_process.php";
     $query = "select * from mro_board where IDX = {$idx}";    
-    //$row = $db->executeResult($query);
     $row =  mysqli_fetch_array(mysqli_query($conn, $query));
     $post_type = $row['POST_TYPE'];
     $writer = $row['WRITER'];
@@ -36,11 +35,12 @@ if($idx !=""){
     if($file_check == 'Y'){
         $delete_btn = '<button type = "button" id="delete_btn">지우기</button>';
         $file_query = "select * from mro_attach where IDX = {$idx}";
-        //$file_row = $db->executeResult($file_query);
         $file_row = mysqli_fetch_array(mysqli_query($conn, $file_query));
         $file_name = $file_row['FILE_NAME'];
         $file_id = $file_row['FILE_ID'];
         $local_filepath = "http://localhost/mro_board/upload/{$file_id}-" . $file_name;
+        $file_type[] = explode('/',$file_row['FILE_TYPE']);        
+        $img_check = $file_type[0][0]=="image" ? true : false;
         //$file_path = $file_row['FILE_PATH']; 절대 경로는 403에러가 나서 톰캣 설정
     }
 }

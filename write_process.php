@@ -2,6 +2,9 @@
 require_once("common/dbcon.php");
 require_once("common/function.php");
 
+$attach_result = false;
+$write_result = false;
+$write_result_one = false;
 
 
 $current_idx_query = "select max(IDX)+1 FROM mro_board"; 
@@ -15,7 +18,7 @@ mysqli_query($conn,"alter table mro_board AUTO_INCREMENT={$current_idx[0]}"); //
 $customer_type = $_POST['CUSTOMER_TYPE'];
 $customer_type2 = implode(",",$customer_type);
 
-require("common/validation1.php");
+require("common/validation.php");
 
 // 트랜잭션 시작......................
 mysqli_query($conn, "SET AUTOCOMMIT=0");
@@ -74,6 +77,9 @@ if($_FILES['file']['size'] > 0){
   // 글 등록............
   $write_result = mysqli_query($conn, $write_query);
   
+  //글이나 파일등록이 실패할경우
+  //$write_result = false;
+
   // Rollback transaction
 
   if($attach_result && $write_result){
@@ -90,7 +96,7 @@ if($_FILES['file']['size'] > 0){
   if($write_result_one){
     mysqli_query($conn, "COMMIT");
     mysqli_query($conn, "SET AUTOCOMMIT=1");
-
+   
   }else {
     mysqli_query($conn, "ROLLBACK");
   }

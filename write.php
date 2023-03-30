@@ -19,10 +19,6 @@ require_once("common/function.php");
 
   <title>등록</title>
 </head>
-<style> 
-
-  
-</style>
 
 <body>
 
@@ -36,6 +32,7 @@ require_once("common/function.php");
         <div class="container">
           <h1><?= $board_title ?></h1>
           <hr>
+          <h5>(*표시 부분은 필수항목입니다.)</h6>
         </div>
       </div>
     </div>
@@ -47,7 +44,7 @@ require_once("common/function.php");
           <form action="<?= $form_action ?>" method="post" id="write_form" enctype="multipart/form-data">
             <table>
               <tr>
-                <td class="col"><label for="">구분(분류)</label></td>
+                <td class="col"><label for="">구분(분류)*</label></td>
                 <td class="col2">
                   <select name="POST_TYPE">
                     <option value="">선택해주세요</option>
@@ -58,11 +55,11 @@ require_once("common/function.php");
 
               </tr>
               <tr>
-                <td class="col"><label for="">작성자</label></td>
+                <td class="col"><label for="">작성자*</label></td>
                 <td class="col2"><input type="text" name="WRITER" value="<?= $writer ?>"></td>
               </tr>
               <tr>
-                <td class="col"><label for="">분류</label></td>
+                <td class="col"><label for="">분류*</label></td>
                 <td class="col2">
                   <input type="radio" name="CATEGORY" value="1" <?php category_check("1", $category) ?>>홈페이지
                   <input type="radio" name="CATEGORY" value="2" <?php category_check("2", $category) ?>>네트워크
@@ -79,11 +76,11 @@ require_once("common/function.php");
                 </td>
               </tr>
               <tr>
-                <td class="col"><label for="">제목</label></td>
+                <td class="col"><label for="">제목*</label></td>
                 <td class="col2"><input type="text" name="TITLE" value="<?= $title ?>"></td>
               </tr>
               <tr>
-                <td class="col"><label for="">내용</label></td>
+                <td class="col"><label for="">내용*</label></td>
                 <td class="col2">
                   <textarea name="CONTENT" cols="50" rows="10"><?= $content ?></textarea>
                 </td>
